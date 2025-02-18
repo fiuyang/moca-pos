@@ -8,12 +8,12 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
-  UseInterceptors, Query,
+  UseInterceptors, Query, UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JsonErrorResponse, JsonPagingResponse, JsonSuccessResponse } from '../common/decorator/response.decorator';
 import { JsonBadRequestDto } from '../common/dto/api-response.dto';
 import { apiResponse } from '../common/helper/web.helper';
@@ -23,6 +23,8 @@ import { WebResponse } from '../common/interface/web-response.interface';
 import { UserResponse } from './dto/response-user.dto';
 import { ProductResponse } from '../product/dto/response-product.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -47,6 +49,8 @@ export class UserController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get All user' })
   @JsonPagingResponse(UserResponse, 200, 'Success', true)

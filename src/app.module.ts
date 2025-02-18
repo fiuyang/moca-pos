@@ -9,6 +9,7 @@ import { CustomerModule } from './customer/customer.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { SaleModule } from './sale/sale.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { SaleModule } from './sale/sale.module';
     CategoryModule,
     ProductModule,
     SaleModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [ExistValidator, UniqueValidator],
