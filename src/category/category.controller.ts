@@ -1,16 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JsonErrorResponse, JsonSuccessResponse } from '../common/decorator/response.decorator';
 import { JsonBadRequestDto } from '../common/dto/api-response.dto';
 import { ApiListResponse } from '../common/decorator/list.decorator';
 import { WebResponse } from '../common/interface/web-response.interface';
 import { apiResponse } from '../common/helper/web.helper';
 import { CategoryResponse } from './dto/response-category.dto';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @ApiTags('Category')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

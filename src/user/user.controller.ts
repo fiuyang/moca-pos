@@ -27,6 +27,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @Controller('user')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -49,7 +51,6 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get All user' })

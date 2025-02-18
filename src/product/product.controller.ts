@@ -8,12 +8,12 @@ import {
   Delete,
   HttpStatus,
   HttpCode,
-  UseInterceptors, Query,
+  UseInterceptors, Query, UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JsonErrorResponse, JsonPagingResponse, JsonSuccessResponse } from '../common/decorator/response.decorator';
 import { JsonBadRequestDto } from '../common/dto/api-response.dto';
 import { ParamInterceptor } from '../common/interceptor/param.interceptor';
@@ -21,8 +21,11 @@ import { apiResponse } from '../common/helper/web.helper';
 import { WebResponse } from '../common/interface/web-response.interface';
 import { ProductResponse } from './dto/response-product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @Controller('product')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 

@@ -8,12 +8,12 @@ import {
   Delete,
   HttpStatus,
   HttpCode,
-  UseInterceptors,
+  UseInterceptors, UseGuards,
 } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JsonErrorResponse, JsonSuccessResponse } from '../common/decorator/response.decorator';
 import { JsonBadRequestDto } from '../common/dto/api-response.dto';
 import { apiResponse } from '../common/helper/web.helper';
@@ -21,8 +21,11 @@ import { WebResponse } from '../common/interface/web-response.interface';
 import { ApiListResponse } from '../common/decorator/list.decorator';
 import { ParamInterceptor } from '../common/interceptor/param.interceptor';
 import { CustomerResponse } from './dto/response-customer.dto';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 
 @Controller('customer')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 

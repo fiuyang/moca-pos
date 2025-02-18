@@ -1,6 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSaleDto } from './dto/create-sale.dto';
-import { UpdateSaleDto } from './dto/update-sale.dto';
 import { DataSource, In, QueryRunner, Repository } from 'typeorm';
 import { Sale } from './entities/sale.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +14,7 @@ import { SaleResponse } from './dto/response-sale.dto';
 import { paginate } from 'src/common/helper/paging.helper';
 import { FilterSaleDto } from './dto/filter-sale.dto';
 import { PagingResponse } from '../common/interface/web-response.interface';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class SaleService {
@@ -29,11 +33,17 @@ export class SaleService {
       const saleCode = await this.autoGenerateCode(queryRunner, new Date());
 
       // Step 2: Get all product IDs from the request
-      const productIds = createSaleDto.products.map((productData) => productData.product_id);
-      const products = await queryRunner.manager.find(Product, { where: { id: In(productIds) } });
+      const productIds = createSaleDto.products.map(
+        (productData) => productData.product_id,
+      );
+      const products = await queryRunner.manager.find(Product, {
+        where: { id: In(productIds) },
+      });
 
       // Step 3: Map products by ID for easy lookup
-      const productMap = new Map(products.map((product) => [product.id, product]));
+      const productMap = new Map(
+        products.map((product) => [product.id, product]),
+      );
 
       // Step 4: Create Sale Items with stock validation
       let totalAmount = 0;
@@ -41,18 +51,20 @@ export class SaleService {
         const product = productMap.get(productData.product_id);
 
         if (!product) {
-          throw new BadRequestException(`Product with ID ${productData.product_id} not found`);
+          throw new BadRequestException(
+            `Product with ID ${productData.product_id} not found`,
+          );
         }
 
         // Validate stock availability
         if (productData.stock > product.stock) {
           throw new BadRequestException(
-            `Insufficient stock for product ID ${productData.product_id}. Available stock: ${product.stock}, requested: ${productData.stock}`
+            `Insufficient stock for product ID ${productData.product_id}. Available stock: ${product.stock}, requested: ${productData.stock}`,
           );
         }
 
         const subtotal = productData.stock * product.price;
-        totalAmount += subtotal;  // Accumulate subtotal to totalAmount
+        totalAmount += subtotal; // Accumulate subtotal to totalAmount
 
         return queryRunner.manager.create(SaleItem, {
           product: { id: productData.product_id },
@@ -89,17 +101,22 @@ export class SaleService {
       for (const productData of createSaleDto.products) {
         const product = productMap.get(productData.product_id);
         if (!product) {
-          throw new BadRequestException(`Product with ID ${productData.product_id} not found`);
+          throw new BadRequestException(
+            `Product with ID ${productData.product_id} not found`,
+          );
         }
         product.stock -= productData.stock; // Deduct the stock
         await queryRunner.manager.save(product); // Update the product stock
       }
 
       // Step 9: Validate total_amount
-      const calculatedTotalAmount = createdSaleItems.reduce((acc, item) => acc + item.subtotal, 0);
+      const calculatedTotalAmount = createdSaleItems.reduce(
+        (acc, item) => acc + item.subtotal,
+        0,
+      );
       if (totalAmount !== calculatedTotalAmount) {
         throw new BadRequestException(
-          `Total amount mismatch. Calculated: ${calculatedTotalAmount}, Provided: ${totalAmount}`
+          `Total amount mismatch. Calculated: ${calculatedTotalAmount}, Provided: ${totalAmount}`,
         );
       }
 
@@ -107,34 +124,40 @@ export class SaleService {
       await queryRunner.commitTransaction();
       await queryRunner.release();
 
-      console.log("Sale successfully created with code:", savedSale.code);
+      console.log('Sale successfully created with code:', savedSale.code);
       return savedSale.code;
-
     } catch (error) {
-      console.error("Error occurred during sale creation:", error);
+      console.error('Error occurred during sale creation:', error);
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
       throw error;
     }
   }
 
-  async findAll(filter: FilterSaleDto): Promise<{ data: SaleResponse[]; paging: PagingResponse }> {
-
-    const queryBuilder = this.saleRepo.createQueryBuilder('sale')
+  async findAll(
+    filter: FilterSaleDto,
+  ): Promise<{ data: SaleResponse[]; paging: PagingResponse }> {
+    const queryBuilder = this.saleRepo
+      .createQueryBuilder('sale')
       .leftJoinAndSelect('sale.user', 'user')
       .leftJoinAndSelect('sale.customer', 'customer')
       .leftJoinAndSelect('sale.saleItems', 'saleItems')
       .leftJoinAndSelect('saleItems.product', 'product');
 
     if (filter.code) {
-      queryBuilder.andWhere('sale.code LIKE :code', { code: `%${filter.code}%` });
+      queryBuilder.andWhere('sale.code LIKE :code', {
+        code: `%${filter.code}%`,
+      });
     }
 
     if (filter.start_date && filter.end_date) {
-      queryBuilder.andWhere('sale.purchase_date BETWEEN :start_date AND :end_date', {
-        start_date: filter.start_date,
-        end_date: filter.end_date,
-      });
+      queryBuilder.andWhere(
+        'sale.purchase_date BETWEEN :start_date AND :end_date',
+        {
+          start_date: filter.start_date,
+          end_date: filter.end_date,
+        },
+      );
     }
 
     const { data, paging } = await paginate(queryBuilder, filter);
@@ -150,7 +173,7 @@ export class SaleService {
   }
 
   async findOne(id: string): Promise<SaleResponse> {
-    const data =  this.saleRepo.findOne({
+    const data = this.saleRepo.findOne({
       where: { id },
       relations: ['user', 'customer', 'saleItems', 'saleItems.product'],
     });
@@ -162,12 +185,47 @@ export class SaleService {
     });
   }
 
-  async update(id: number, updateSaleDto: UpdateSaleDto) {
-    return `This action updates a #${id} sale`;
-  }
+  async generateReport(filter: FilterSaleDto): Promise<ExcelJS.Buffer> {
+    const { data: salesData } = await this.findAll(filter);
 
-  async remove(id: number) {
-    return `This action removes a #${id} sale`;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sales Report');
+
+    worksheet.columns = [
+      { header: 'Sale Code', key: 'code', width: 20 },
+      { header: 'Customer Name', key: 'customer_name', width: 30 },
+      { header: 'Cashier', key: 'cashier', width: 30 },
+      { header: 'Purchase Date', key: 'purchase_date', width: 20 },
+      { header: 'Total Amount', key: 'total_amount', width: 15 },
+      { header: 'Change', key: 'change', width: 15 },
+      { header: 'Payment Method', key: 'payment_method', width: 15 },
+    ];
+
+    salesData.forEach((sale) => {
+      worksheet.addRow({
+        code: sale.code,
+        customer_name: sale.customer?.name || 'N/A',
+        cashier: sale.user?.username || 'N/A',
+        purchase_date: sale.purchase_date
+          ? new Date(sale.purchase_date).toLocaleDateString()
+          : 'N/A',
+        total_amount: sale.total_amount || 0,
+        change: sale.change || 0,
+        payment_method: sale.payment_method || 'N/A',
+      });
+    });
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFF00' },
+      };
+    });
+
+    // Write the Excel file to the response stream
+    return await workbook.xlsx.writeBuffer();
   }
 
   async autoGenerateCode(
@@ -195,7 +253,7 @@ export class SaleService {
       newSequenceNumber = lastSequence + 1;
     }
 
-     //025021800001
+    //025021800001
     return `${datePrefix}${newSequenceNumber.toString().padStart(6, '0')}`;
   }
 }
