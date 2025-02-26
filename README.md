@@ -2,23 +2,40 @@
 
 Moca POS is a powerful Point of Sale (POS) system built using NestJS. It helps businesses efficiently manage products, transactions, customers, and generate reports.
 
-## Features
+## 🚀 Features
 
-- **Product Management**: Add, edit, delete, and view product listings.
-- **User Management**: Add, edit, delete, and view user listings.
-- **Category Management**: Add, edit, delete, and view category listings.
-- **Sale Management**: Create new transactions, view transaction history, and retrieve transaction data.
-- **Customer Management**: Add, edit, delete, and view customer listings.
-- **Reporting**: Generate daily, weekly, and monthly sales reports (coming soon).
-- **Authentication**: JWT (JSON Web Token) based authentication to secure endpoints (coming soon).
+### 🛍 Product Management
+- Add, edit, delete, and view product listings.
+
+### 🏷 Category Management
+- Add, edit, delete, and view product categories.
+
+### 👥 User Management
+- Add, edit, delete, and view user accounts.
+- Secure authentication using **JWT (JSON Web Token)** (Coming Soon).
+
+### 🛒 Sale Management
+- Create new sales transactions.
+- View and manage transaction history.
+
+### 👨‍💼 Customer Management
+- Add, edit, delete, and view customer details.
+
+### 📊 Reporting (Coming Soon)
+- Generate daily, weekly, and monthly sales reports.
+
+### 🔐 Authentication (Coming Soon)
+- Secure access to endpoints using **JWT (JSON Web Token)**.
 
 ## Technologies Used
 
-- **NestJS**: A progressive Node.js framework for building efficient, scalable applications.
-- **TypeORM**: ORM for interacting with PostgreSQL databases.
-- **PostgreSQL**: A relational database for managing data.
-- **JWT**: For user authentication and authorization (coming soon).
-- **Swagger**: For API documentation and testing.
+- ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white) **NestJS** – A progressive Node.js framework for building efficient and scalable applications.
+- ![TypeORM](https://img.shields.io/badge/TypeORM-FF5A5F?style=flat&logo=typeorm&logoColor=white) **TypeORM** – An ORM for seamless interaction with **PostgreSQL** databases.
+- ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat&logo=postgresql&logoColor=white) **PostgreSQL** – A powerful relational database for managing data.
+- ![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white) **Redis** – A fast, in-memory data store for caching and session management.
+- ![JWT](https://img.shields.io/badge/JWT-000000?style=flat&logo=jsonwebtokens&logoColor=white) **JWT Authentication** – Secure user authentication and authorization.
+- ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat&logo=swagger&logoColor=black) **Swagger** – API documentation and testing made easy.
+
 
 ## Clone the repository:
 
